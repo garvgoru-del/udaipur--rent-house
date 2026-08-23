@@ -1,0 +1,3 @@
+import type { Metadata } from 'next';import './globals.css';import { Header } from '@/components/Header';
+export const metadata: Metadata = { title: 'UDAIPUR RENT HOUSE | Verified rentals in Udaipur', description: 'Find verified flats, villas, PGs and commercial rentals across Udaipur with owner, tenant and broker dashboards.', metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000') };
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><Header/>{children}<footer className="bg-navy px-4 py-10 text-center text-sm text-white/70">© 2026 UDAIPUR RENT HOUSE. Built for trusted Lake City rentals.</footer></body></html>}

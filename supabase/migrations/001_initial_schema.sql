@@ -1,0 +1,14 @@
+create type user_role as enum ('tenant','owner','broker','admin');
+create type property_status as enum ('draft','pending','verified','rejected');
+create table profiles (id uuid primary key references auth.users(id) on delete cascade, full_name text not null, phone text, role user_role not null default 'tenant', created_at timestamptz default now());
+create table properties (id uuid primary key default gen_random_uuid(), owner_id uuid references profiles(id), title text not null, slug text unique not null, locality text not null, address text not null, monthly_rent integer not null, property_type text not null, bedrooms integer default 0, bathrooms integer default 1, area_sqft integer not null, furnishing text, description text, image_url text, status property_status default 'pending', is_premium boolean default false, available_from date, created_at timestamptz default now());
+create table favourites (user_id uuid references profiles(id) on delete cascade, property_id uuid references properties(id) on delete cascade, created_at timestamptz default now(), primary key(user_id, property_id));
+create table enquiries (id uuid primary key default gen_random_uuid(), property_id uuid references properties(id) on delete cascade, tenant_id uuid references profiles(id), message text not null, status text default 'open', created_at timestamptz default now());
+create table visit_requests (id uuid primary key default gen_random_uuid(), property_id uuid references properties(id) on delete cascade, tenant_id uuid references profiles(id), requested_for timestamptz not null, status text default 'requested', created_at timestamptz default now());
+alter table profiles enable row level security; alter table properties enable row level security; alter table favourites enable row level security; alter table enquiries enable row level security; alter table visit_requests enable row level security;
+create policy "Public can read verified properties" on properties for select using (status = 'verified');
+create policy "Users manage own profile" on profiles for all using (auth.uid() = id) with check (auth.uid() = id);
+create policy "Owners manage own properties" on properties for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+create policy "Users manage own favourites" on favourites for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "Users manage own enquiries" on enquiries for all using (auth.uid() = tenant_id) with check (auth.uid() = tenant_id);
+create policy "Users manage own visits" on visit_requests for all using (auth.uid() = tenant_id) with check (auth.uid() = tenant_id);
